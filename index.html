@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<button onclick="insert()">插入</button>
+<input type="file" id="file"/>
+
+<button onclick="upload()">上传</button>
+<script>
+    function pageTitle(){
+         fetch(`${baseUrl}upload`, {
+            method: 'POST', // or 'PUT'
+            // headers: {
+            //     "Content-Type": "multipart/form-data",
+            // },
+            body: formta,
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+    // upload()
+    function upload() {
+        const a = document.querySelector('#file')
+        // console.log(a, a.files)
+        var formdata = new FormData();
+        var fileinfo = document.querySelector('[type="file"]').files[0];
+        formdata.append('avatar', fileinfo) // 将文件信息添加到FormData对象中
+        console.log(formdata, 'shuju')
+        for (var v of formdata) {
+
+            console.log(v)
+        }
+
+        fetch(`${baseUrl}upload`, {
+            method: 'POST', // or 'PUT'
+            // headers: {
+            //     "Content-Type": "multipart/form-data",
+            // },
+            body: formdata,
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    const data = {_id: '62c1a21c12205b8ed233522d'};
+    const baseUrl = "http://127.0.0.1:3000/";
+    fetch(`${baseUrl}search`, {
+        method: 'POST', // or 'PUT'
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    }).then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+
+
+    const insertData = {
+        // "_id": "62c265a89942497ba48569cb",
+        "pageName": "测试模块2",
+        "pageType": "component2",
+        "menuPath": "/component/globalStyletest1",
+        "menuWeight": "12"
+
+    }
+    list()
+
+    function list() {
+        fetch(`${baseUrl}components/list`, {
+            method: 'GET', // or 'PUT'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // body: JSON.stringify(insertData),
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    function insert() {
+        fetch(`${baseUrl}components/insert`, {
+            method: 'POST', // or 'PUT'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(insertData),
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    function getPage() {
+        fetch(`${baseUrl}components/page/button`, {
+            method: 'get', // or 'PUT'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // body: JSON.stringify(insertData),
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    getPage()
+</script>
+</body>
+</html>
