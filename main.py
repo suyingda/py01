@@ -77,11 +77,23 @@ def upload():
         _format = fileData.filename.split('.')
 
     t = str(round(time.time() * 1000))
-    path = './save_file/' + _format[0] + t + '.' + _format[1]
+    # _p = os.path.abspath('/save_file/')
+    # print(_p)
+
+    file_path = '/Users/apple/Desktop/py-server/py01/save_file/'
+    path = file_path + _format[0] + t + '.' + _format[1]
+    list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
+    print(list, '7777')
+    # print(os.path.join('./'),'？')
+    # for i in range(0, len(list)):
+    #     path = os.path.join('./', list[i])
+    #     print(path, '6666')
+    #     # if os.path.isfile(path):
     if fileData:
         fileData.save(path)
         # else:
         #     return 'We don\'t allow this file extension.'
+
     return json_util.dumps(
         {'data': '/save_file/' + _format[0] + t + '.' + _format[1], 'message': 'success', 'code': 200})
 
@@ -113,6 +125,7 @@ def get_json():
     # return d
 
 
+# connect mongo
 mongo = pymongo.MongoClient(host='localhost', port=27017, tz_aware=True)
 
 
@@ -181,7 +194,8 @@ def insert():
     if '_id' in props:
         print(props, '插入子节点', ObjectId(props['_id']))
         data = {}
-        data['parent'] = ObjectId(props['_id'])
+        data['parent'] = props['_id']
+        data["addType"] = props['addType']
         data["pageName"] = props['pageName']
         data["pageType"] = props['pageType']
         data["menuPath"] = props['menuPath']
@@ -199,14 +213,14 @@ def insert():
 def search():
     print(request.data, 'search', type(request.data))
     props = eval(request.data)
-    _id = ''
+    pageName = ''
     try:
-        _id = props["_id"]
+        pageName = props["pageName"]
     except:
-        return 'Parameter _id cannot be empty'
+        return 'Parameter pageName cannot be empty'
     print(props, 'search')
     db = mongo.components
-    data = db.list.find({"_id": ObjectId(_id)})
+    data = db.list.find({"pageName": pageName})
     dict = []
     for r in data:
         dict.append(ast.literal_eval(JSONEncoder().encode(r)))
@@ -227,14 +241,104 @@ def requestBase(files):
 
 # 插入数据
 
-@app.route('/components/head', methods=['POST'])
+@app.route('/components/head/add', methods=['POST'])
 def insert_page():
-    db = mongo.components
     props = eval(request.data)
+    db = mongo.components
     # if 'image' in props:
     #     requestBase(props['image'])
-    db.page_module.save(props)
+    if '_id' in props:
+        print(props, 'update')
+        # find
+        data = db.page_head.find({'_id': ObjectId(props['_id'])})
+        #
+        dict = {}
+        for r in data:
+            dict = r
+            # dict = (ast.literal_eval(JSONEncoder().encode(r)))
+        print(dict, 'xx', props)
+        db.page_head.update_one(dict, {"$set": {
+            # '_id': ObjectId(props['_id']),
+            'headBackground': props['headBackground'],
+            'title': props['title'],
+            'desc': props['desc'],
+        }})
+    else:
+        db.page_head.insert_one(props)
     return json_util.dumps({'message': 'success', 'code': 200})
+
+
+@app.route('/components/head', methods=['POST'])
+def headaa():
+    print(request.data, 'head', type(request.data))
+    props = eval(request.data)
+    # if "_id" is props:
+    #     return '_id is cannot '
+    id = ''
+    try:
+        id = props["_id"]
+    except:
+        return 'Parameter _id cannot be empty'
+    print(props, 'page_head')
+    db = mongo.components
+    data = db.page_head.find_one({"id": id})
+    print(data, 'dasdfasf')
+    dict = ast.literal_eval(JSONEncoder().encode(data))
+    # for r in data:
+    # dict = r
+    # dict = ast.literal_eval(JSONEncoder().encode(r))
+    # print(dict)
+    return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+
+
+# page content
+@app.route('/components/content/add', methods=['POST'])
+def aaaa():
+    props = eval(request.data)
+    db = mongo.components
+    if '_id' in props:
+        print(props, 'update')
+        # find
+        data = db.page_content.find({'_id': ObjectId(props['_id']), "type": props['type']})
+        #
+        dict = {}
+        for r in data:
+            dict = r
+            # dict = (ast.literal_eval(JSONEncoder().encode(r)))
+        print(dict, 'xx', props)
+        db.page_content.update_one(dict, {"$set": {
+            # '_id': ObjectId(props['_id']),
+            # 'type': props['type'],
+            'data': props['data'],
+
+        }})
+    else:
+        db.page_content.insert_one(props)
+    return json_util.dumps({'message': 'success', 'code': 200})
+
+
+@app.route('/components/content', methods=['POST'])
+def content():
+    print(request.data, 'content', type(request.data))
+    props = eval(request.data)
+    id = ''
+    try:
+        id = props["id"]
+    except:
+        return 'Parameter self id cannot be empty'
+    print(props, 'page_head')
+    db = mongo.components
+    data = db.page_content.find_one({"id": id, "type": props['type']})
+    dict = []
+    if data:
+        dict = ast.literal_eval(JSONEncoder().encode(data))
+    print(data, '查询content')
+
+    # for r in data:
+    # dict = r
+    # dict = ast.literal_eval(JSONEncoder().encode(r))
+    # print(dict)
+    return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
 
 
 @app.route('/components/page/<string:name>', methods=['GET'])

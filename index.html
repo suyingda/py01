@@ -13,8 +13,45 @@
 
 <button onclick="upload()">上传</button>
 <script>
-    function pageTitle(){
-         fetch(`${baseUrl}upload`, {
+    const baseUrl = "http://127.0.0.1:3000/";
+    fetch(`${baseUrl}components/head/add`, {
+        method: 'POST', // or 'PUT'
+        // headers: {
+        //     "Content-Type": "multipart/form-data",
+        // },
+        body: JSON.stringify({
+            '_id': '62c5070d125e6cb72cf51d2e',
+            name: '1111123111', title: '12'
+        }),
+    }).then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    init_head()
+
+    function init_head() {
+        fetch(`${baseUrl}components/head`, {
+            method: 'POST', // or 'PUT'
+            // headers: {
+            //     "Content-Type": "multipart/form-data",
+            // },
+            body: JSON.stringify({
+                '_id': '62c50278b0066d009239f4fd'
+            }),
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    function pageTitle() {
+        fetch(`${baseUrl}upload`, {
             method: 'POST', // or 'PUT'
             // headers: {
             //     "Content-Type": "multipart/form-data",
@@ -28,6 +65,7 @@
                 console.error('Error:', error);
             });
     }
+
     // upload()
     function upload() {
         const a = document.querySelector('#file')
@@ -57,7 +95,7 @@
     }
 
     const data = {_id: '62c1a21c12205b8ed233522d'};
-    const baseUrl = "http://127.0.0.1:3000/";
+
     fetch(`${baseUrl}search`, {
         method: 'POST', // or 'PUT'
         headers: {
