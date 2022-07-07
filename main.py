@@ -84,18 +84,27 @@ def upload():
     path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     print(list, '7777')
+    db = mongo.components
+    exit_data = db.upload.find({"filename": _format[0]})
     # print(os.path.join('./'),'？')
     # for i in range(0, len(list)):
     #     path = os.path.join('./', list[i])
     #     print(path, '6666')
     #     # if os.path.isfile(path):
+    _path = '/save_file/' + _format[0] + t + '.' + _format[1]
+    if exit_data:
+        return json_util.dumps(
+            {'data': _path, 'message': 'already existed', 'code': 200})
+
+    db.upload.insert_one({"filename": _format[0], "path": _path})
+    print(_format[0], 'xxxx')
     if fileData:
         fileData.save(path)
         # else:
         #     return 'We don\'t allow this file extension.'
 
     return json_util.dumps(
-        {'data': '/save_file/' + _format[0] + t + '.' + _format[1], 'message': 'success', 'code': 200})
+        {'data': _path, 'message': 'success', 'code': 200})
 
 
 # @app.route("/download")
@@ -177,7 +186,9 @@ def list():
             }
         }]
     )
+    print(result, 'list')
     for rc in result:
+        print(rc)
         temp = ast.literal_eval(JSONEncoder().encode(rc))
         dict.append(temp)
 
@@ -194,7 +205,7 @@ def insert():
     if '_id' in props:
         print(props, '插入子节点', ObjectId(props['_id']))
         data = {}
-        data['parent'] = props['_id']
+        data['parent'] = ObjectId(props['_id'])
         data["addType"] = props['addType']
         data["pageName"] = props['pageName']
         data["pageType"] = props['pageType']
