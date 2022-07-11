@@ -12,8 +12,26 @@
 <input type="file" id="file"/>
 
 <button onclick="upload()">上传</button>
+<button onclick="update()">更新</button>
 <script>
     const baseUrl = "http://127.0.0.1:3000/";
+     fetch(`${baseUrl}components/update`, {
+        method: 'POST', // or 'PUT'
+        // headers: {
+        //     "Content-Type": "multipart/form-data",
+        // },
+        body: JSON.stringify({
+            '_id': '62c69ac342adc1816c2c9732',
+            name: '1111123111', title: '12'
+        }),
+    }).then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+
     fetch(`${baseUrl}components/head/add`, {
         method: 'POST', // or 'PUT'
         // headers: {

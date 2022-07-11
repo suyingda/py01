@@ -28,9 +28,6 @@ absolute = os.path.dirname(__file__)
 # 定义文件的保存路径和文件名尾缀
 FOLDER = os.path.join(absolute, 'save_file')
 
-from bson.objectid import ObjectId
-import json
-
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):  # pylint: disable=E0202
@@ -85,23 +82,18 @@ def upload():
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     print(list, '7777')
     db = mongo.components
-    exit_data = db.upload.find({"filename": _format[0]})
-    # print(os.path.join('./'),'？')
-    # for i in range(0, len(list)):
-    #     path = os.path.join('./', list[i])
-    #     print(path, '6666')
-    #     # if os.path.isfile(path):
-    _path = '/save_file/' + _format[0] + t + '.' + _format[1]
-    if exit_data:
-        return json_util.dumps(
-            {'data': _path, 'message': 'already existed', 'code': 200})
+    exit_data = db.upload.find_one({"filename": _format[0]})
+    print(exit_data)
 
-    db.upload.insert_one({"filename": _format[0], "path": _path})
+    _path = '/save_file/' + _format[0] + t + '.' + _format[1]
+    # if exit_data:
+    #     return json_util.dumps(
+    #         {'data': exit_data['path'], 'message': 'already existed', 'code': 200})
+    # else:
+    #     db.upload.insert_one({"filename": _format[0], "path": _path})
     print(_format[0], 'xxxx')
     if fileData:
         fileData.save(path)
-        # else:
-        #     return 'We don\'t allow this file extension.'
 
     return json_util.dumps(
         {'data': _path, 'message': 'success', 'code': 200})
@@ -159,22 +151,70 @@ def mongodb_init01():
 def delete():
     props = eval(request.data)
     db = mongo.components
-    if props['parentId']:
+    if 'parentId' in props:
         db.list.delete_one({"_id": ObjectId(props['parentId'])})
         db.list_children.delete_many({"parent": ObjectId(props['parentId'])})
-    elif props['childrenId']:
-        db.list_children.delete_one({"_id": props['childrenId']})
+    elif 'childrenId' in props:
+        db.list_children.delete_one({"_id": ObjectId(props['childrenId'])})
         # return json_util.dumps({'message': 'success', 'code': 200})
+    return json_util.dumps({'message': 'success', 'code': 200})
+
+
+@app.route("/components/update", methods=['POST'])
+def update():
+    props = eval(request.data)
+    db = mongo.components
+    if 'parentId' in props:
+        _id = props['parentId']
+        # print(props, 'update data')
+        dict = {}
+        addType = props.get('addType')
+        pageName = props.get('pageName')
+        menuPath = props.get('menuPath')
+        menuWeight = props.get('menuWeight')
+        pageType = props.get('pageType')
+        if addType:
+            dict['addType'] = addType
+        if pageName:
+            dict['pageName'] = pageName
+        if menuPath:
+            dict['menuPath'] = menuPath
+        if menuWeight:
+            dict['menuWeight'] = menuWeight
+        if pageType:
+            dict['pageType'] = pageType
+        print(dict, '更改')
+        db.list.update_one({'_id': ObjectId(_id)}, {"$set": dict})
+    elif 'childrenId' in props:
+        _id = props['childrenId']
+        dict = {}
+        addType = props.get('addType')
+        pageName = props.get('pageName')
+        menuPath = props.get('menuPath')
+        menuWeight = props.get('menuWeight')
+        pageType = props.get('pageType')
+        if addType:
+            dict['addType'] = addType
+        if pageName:
+            dict['pageName'] = pageName
+        if menuPath:
+            dict['menuPath'] = menuPath
+        if menuWeight:
+            dict['menuWeight'] = menuWeight
+        if pageType:
+            dict['pageType'] = pageType
+
+        db.list_children.update_one({'_id': ObjectId(_id)}, {"$set": dict})
     return json_util.dumps({'message': 'success', 'code': 200})
 
 
 @app.route("/components/list", methods=['GET'])
 def list():
     db = mongo.components
-    data = db.list.find()
-    data_child = db.list_children.find()
-    print(data, 'parent')
-    print(data_child, 'child')
+    # data = db.list.find()
+    # data_child = db.list_children.find()
+    # # print(data, 'parent')
+    # # print(data_child, 'child')
     dict = []
     result = db.list.aggregate(
         [{
@@ -186,7 +226,7 @@ def list():
             }
         }]
     )
-    print(result, 'list')
+    # print(result, 'list')
     for rc in result:
         print(rc)
         temp = ast.literal_eval(JSONEncoder().encode(rc))
@@ -224,18 +264,27 @@ def insert():
 def search():
     print(request.data, 'search', type(request.data))
     props = eval(request.data)
-    pageName = ''
-    try:
-        pageName = props["pageName"]
-    except:
-        return 'Parameter pageName cannot be empty'
+    # pageName = ''
+    # try:
+    #     pageName = props["pageName"]
+    # except:
+    #     return 'Parameter pageName cannot be empty'
     print(props, 'search')
     db = mongo.components
-    data = db.list.find({"pageName": pageName})
+    # data = db.list.find({"pageName": {'$regex': pageName}})
+    data = db.list.find({"pageName": {"$regex": props['pageName']}})
+    # data_child = db.list_children.find({"pageName": {"$regex": "^'{0}'".format(props['pageName'])}})
+    data_child = db.list_children.find({"pageName": {"$regex": props['pageName']}})
+    print(data)
     dict = []
     for r in data:
+        print(r)
         dict.append(ast.literal_eval(JSONEncoder().encode(r)))
-        # print(dict)
+    for r in data_child:
+        print(r)
+        dict.append(ast.literal_eval(JSONEncoder().encode(r)))
+    # print(dict)
+    print(dict)
     return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
 
 
@@ -256,24 +305,22 @@ def requestBase(files):
 def insert_page():
     props = eval(request.data)
     db = mongo.components
-    # if 'image' in props:
-    #     requestBase(props['image'])
+    dict = {}
+    headBackground = props.get('headBackground')
+    title = props.get('title')
+    desc = props.get('desc')
+    overViewIcon = props.get('overViewIcon')
+    if headBackground:
+        dict['headBackground'] = headBackground
+    if title:
+        dict['title'] = title
+    if desc:
+        dict['desc'] = desc
+    if overViewIcon:
+        dict['overViewIcon'] = overViewIcon
     if '_id' in props:
-        print(props, 'update')
-        # find
-        data = db.page_head.find({'_id': ObjectId(props['_id'])})
-        #
-        dict = {}
-        for r in data:
-            dict = r
-            # dict = (ast.literal_eval(JSONEncoder().encode(r)))
-        print(dict, 'xx', props)
-        db.page_head.update_one(dict, {"$set": {
-            # '_id': ObjectId(props['_id']),
-            'headBackground': props['headBackground'],
-            'title': props['title'],
-            'desc': props['desc'],
-        }})
+        # dict = (ast.literal_eval(JSONEncoder().encode(r)))
+        db.page_head.update_one({'parent': ObjectId(props['_id'])}, {"$set": dict}, upsert=True)
     else:
         db.page_head.insert_one(props)
     return json_util.dumps({'message': 'success', 'code': 200})
@@ -281,25 +328,19 @@ def insert_page():
 
 @app.route('/components/head', methods=['POST'])
 def headaa():
-    print(request.data, 'head', type(request.data))
+    # print(request.data, 'head', type(request.data))
     props = eval(request.data)
-    # if "_id" is props:
-    #     return '_id is cannot '
-    id = ''
-    try:
-        id = props["_id"]
-    except:
-        return 'Parameter _id cannot be empty'
-    print(props, 'page_head')
-    db = mongo.components
-    data = db.page_head.find_one({"id": id})
-    print(data, 'dasdfasf')
-    dict = ast.literal_eval(JSONEncoder().encode(data))
-    # for r in data:
-    # dict = r
-    # dict = ast.literal_eval(JSONEncoder().encode(r))
-    # print(dict)
-    return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+    # 根据父类Id查询
+    parentId = props.get('parentId')
+    if parentId:
+        db = mongo.components
+        data = db.page_head.find_one({"parentId": parentId})
+        dict = ast.literal_eval(JSONEncoder().encode(data))
+        # dict = ast.literal_eval(JSONEncoder().encode(r))
+        # print(dict)
+        return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+    else:
+        return 'Parameter parentId cannot be empty'
 
 
 # page content
@@ -358,6 +399,42 @@ def page(name):
     return 'page'
 
 
+# clear unnecessary
+def delete_file(file_path, name):
+    path = file_path + name
+    if os.path.exists(path):
+        os.remove(path)
+        print('delete ', path)
+    else:
+        print("The file does not exist")
+
+
+def unnecessary():
+    file_path = '/Users/apple/Desktop/py-server/py01/save_file/'
+    # path = file_path + _format[0] + t + '.' + _format[1]
+    list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
+    print(list, '7777')
+    db = mongo.components
+    data = db.page_content.find()
+    data_head = db.page_head.find()
+    dict = ''
+    for r in data:
+        dict = dict + str(r)
+    for r in data_head:
+        dict = dict + str(r)
+    print(dict, 'data')
+
+    for r in list:
+        if (r in dict):
+            print("在")
+        else:
+            delete_file(file_path, r)
+            print("不在")
+    # for r in :
+    #     print(str(r))
+
+
 if __name__ == "__main__":
+    unnecessary()
     mongodb_init01()
     app.run(host='0.0.0.0', port=3000)
