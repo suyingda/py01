@@ -208,13 +208,86 @@ def update():
     return json_util.dumps({'message': 'success', 'code': 200})
 
 
+@app.route("/components/overview", methods=['GET'])
+def overview():
+    db = mongo.components
+    dict = []
+    res = db.list.aggregate([
+        {
+            "$lookup": {
+                "from": "list_children",
+                "localField": "_id",
+                "foreignField": "parent",
+                "as": "children"
+            }
+
+        },
+        {
+            "$unwind": {
+                "path": "$children",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$lookup": {
+                "from": "page_content",
+                "localField": "children._id",
+                "foreignField": "parentId",
+                "as": "children.pageContent",
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$children",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$lookup": {
+                "from": "page_head",
+                "localField": "children._id",
+                "foreignField": "parentId",
+                "as": "children.pageHead",
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                # "name": {"$first": "$name"},
+                "addType": {"$first": "$addType"},
+                "pageName": {"$first": "$pageName"},
+                "menuPath": {"$first": "$menuPath"},
+                "menuWeight": {"$first": "$menuWeight"},
+                "children": {"$push": "$children"}
+            }
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "addType": 1,
+                "pageName": 1,
+                "menuPath": 1,
+                "menuWeight": 1,
+                # "name": 1,
+                "children": {
+                    "$filter": {"input": "$children", "as": "a", "cond": {"$ifNull": ["$$a._id", False]}}
+                }
+            }
+        }
+    ])
+    print(res)
+    for rc in res:
+        print(rc)
+        temp = ast.literal_eval(JSONEncoder().encode(rc))
+        dict.append(temp)
+
+    # print(dict2)
+    return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+
+
 @app.route("/components/list", methods=['GET'])
 def list():
     db = mongo.components
-    # data = db.list.find()
-    # data_child = db.list_children.find()
-    # # print(data, 'parent')
-    # # print(data_child, 'child')
     dict = []
     result = db.list.aggregate(
         [{
@@ -223,8 +296,9 @@ def list():
                 "localField": "_id",
                 "foreignField": "parent",
                 "as": "children"
-            }
-        }]
+            },
+
+        }, {"$sort": {"date": -1}}]
     )
     # print(result, 'list')
     for rc in result:
@@ -238,20 +312,33 @@ def list():
 # 插入数据
 @app.route('/components/insert', methods=['POST'])
 def insert():
-    print('插入数据：', request.data, type(request.data))
+    # print('插入数据：', request.data, type(request.data))
     props = eval(request.data)
     db = mongo.components
     print(props)
-    if '_id' in props:
-        print(props, '插入子节点', ObjectId(props['_id']))
+    if 'parent' in props:
+        # print(props, '插入子节点', ObjectId(props['_id']))
         data = {}
-        data['parent'] = ObjectId(props['_id'])
-        data["addType"] = props['addType']
-        data["pageName"] = props['pageName']
-        data["pageType"] = props['pageType']
-        data["menuPath"] = props['menuPath']
-        data["menuWeight"] = props['menuWeight']
-        print(data, '子集插入')
+        data['parent'] = ObjectId(props['parent'])
+        type = props.get('type')
+        addType = props.get('addType')
+        pageName = props.get('pageName')
+        pageType = props.get('pageType')
+        menuPath = props.get('menuPath')
+        menuWeight = props.get('menuWeight')
+        if type:
+            data['type'] = type
+        if addType:
+            data['addType'] = addType
+        if pageName:
+            data['pageName'] = pageName
+        if pageType:
+            data['pageType'] = pageType
+        if menuPath:
+            data['menuPath'] = menuPath
+        if menuWeight:
+            data['menuWeight'] = menuWeight
+        # print(data, '子集插入')
         db.list_children.insert_one(data)
     else:
         print(props, 'insert')
@@ -335,10 +422,15 @@ def headaa():
     if parentId:
         db = mongo.components
         data = db.page_head.find_one({"parentId": parentId})
-        dict = ast.literal_eval(JSONEncoder().encode(data))
+        # print(data)
+        if data:
+            dict = ast.literal_eval(JSONEncoder().encode(data))
+            return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+        else:
+            return json_util.dumps({'data': {}, 'message': 'success', 'code': 200})
+
         # dict = ast.literal_eval(JSONEncoder().encode(r))
         # print(dict)
-        return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
     else:
         return 'Parameter parentId cannot be empty'
 
@@ -413,7 +505,7 @@ def unnecessary():
     file_path = '/Users/apple/Desktop/py-server/py01/save_file/'
     # path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
-    print(list, '7777')
+    # print(list, '7777')
     db = mongo.components
     data = db.page_content.find()
     data_head = db.page_head.find()
