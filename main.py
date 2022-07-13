@@ -217,7 +217,7 @@ def overview():
             "$lookup": {
                 "from": "list_children",
                 "localField": "_id",
-                "foreignField": "parent",
+                "foreignField": "parentId",
                 "as": "children"
             }
 
@@ -253,11 +253,13 @@ def overview():
         {
             "$group": {
                 "_id": "$_id",
-                # "name": {"$first": "$name"},
                 "addType": {"$first": "$addType"},
                 "pageName": {"$first": "$pageName"},
                 "menuPath": {"$first": "$menuPath"},
                 "menuWeight": {"$first": "$menuWeight"},
+                # "pageType": {"$ifNull": ["$pageType", 's']},
+                "pageType": {'$first': "$pageType"},
+                # "pageType": {'$cond': [{"$eq": [{"$type": "$pageType"}, "missing"]}, 0, 1]},
                 "children": {"$push": "$children"}
             }
         },
@@ -266,23 +268,26 @@ def overview():
                 "_id": 1,
                 "addType": 1,
                 "pageName": 1,
-                "menuPath": 1,
+                "menuPath": {"$ifNull": ["$menuPath", '请联系管理员']},
                 "menuWeight": 1,
-                # "name": 1,
+                "pageType": {"$ifNull": ["$pageType", '请联系管理员']},
                 "children": {
                     "$filter": {"input": "$children", "as": "a", "cond": {"$ifNull": ["$$a._id", False]}}
                 }
             }
-        }
+        },
+        {"$sort": {"menuWeight": 1}}
     ])
     print(res)
     for rc in res:
-        print(rc)
-        temp = ast.literal_eval(JSONEncoder().encode(rc))
-        dict.append(temp)
+        print('111', rc)
+        if rc:
+            temp = ast.literal_eval(JSONEncoder().encode(rc))
+            dict.append(temp)
 
     # print(dict2)
     return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
+
 
 
 @app.route("/components/list", methods=['GET'])
@@ -294,7 +299,7 @@ def list():
             '$lookup': {
                 "from": "list_children",
                 "localField": "_id",
-                "foreignField": "parent",
+                "foreignField": "parentId",
                 "as": "children"
             },
 
@@ -316,10 +321,10 @@ def insert():
     props = eval(request.data)
     db = mongo.components
     print(props)
-    if 'parent' in props:
+    if 'parentId' in props:
         # print(props, '插入子节点', ObjectId(props['_id']))
         data = {}
-        data['parent'] = ObjectId(props['parent'])
+        data['parentId'] = ObjectId(props['parentId'])
         type = props.get('type')
         addType = props.get('addType')
         pageName = props.get('pageName')
@@ -393,10 +398,13 @@ def insert_page():
     props = eval(request.data)
     db = mongo.components
     dict = {}
+    parentId = props.get('parentId')
     headBackground = props.get('headBackground')
     title = props.get('title')
     desc = props.get('desc')
     overViewIcon = props.get('overViewIcon')
+    if headBackground:
+        dict['parentId'] = ObjectId(parentId)
     if headBackground:
         dict['headBackground'] = headBackground
     if title:
@@ -405,11 +413,11 @@ def insert_page():
         dict['desc'] = desc
     if overViewIcon:
         dict['overViewIcon'] = overViewIcon
-    if '_id' in props:
+    if parentId:
         # dict = (ast.literal_eval(JSONEncoder().encode(r)))
-        db.page_head.update_one({'parent': ObjectId(props['_id'])}, {"$set": dict}, upsert=True)
+        db.page_head.update_one({'parentId': ObjectId(parentId)}, {"$set": dict}, upsert=True)
     else:
-        db.page_head.insert_one(props)
+        db.page_head.insert_one(dict)
     return json_util.dumps({'message': 'success', 'code': 200})
 
 
@@ -421,7 +429,7 @@ def headaa():
     parentId = props.get('parentId')
     if parentId:
         db = mongo.components
-        data = db.page_head.find_one({"parentId": parentId})
+        data = db.page_head.find_one({"parentId": ObjectId(parentId)})
         # print(data)
         if data:
             dict = ast.literal_eval(JSONEncoder().encode(data))
