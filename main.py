@@ -6,15 +6,19 @@ import time
 import gridfs
 from bson.objectid import ObjectId
 from bson import json_util
-# from bson import ObjectId
 from flask import Flask, send_file, jsonify, request
 from flask_cors import CORS
 import pymongo
+from gevent import pywsgi
+import common.config as common
+import common.routers as routers
+
+# print(common.path('env'), 'xxx')
 
 app = Flask(__name__, static_folder='save_file', static_url_path="/save_file")
 # download
 # app.default_config['JSONIFY_MINETYPE'] = "application/DragonFire"
-
+# routers.routers(app)
 # flask method=['get','post'] endpoint='h1'
 # @app.route('/home/<id>')
 # def index(id):
@@ -77,7 +81,7 @@ def upload():
     # _p = os.path.abspath('/save_file/')
     # print(_p)
 
-    file_path = '/Users/apple/Desktop/py-server/py01/save_file/'
+    file_path = common.path('production')
     path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     print(list, '7777')
@@ -517,7 +521,7 @@ def delete_file(file_path, name):
 
 
 def unnecessary():
-    file_path = '/Users/apple/Desktop/py-server/py01/save_file/'
+    file_path = common.path('production')
     # path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     # print(list, '7777')
@@ -544,4 +548,6 @@ def unnecessary():
 if __name__ == "__main__":
     unnecessary()
     mongodb_init01()
-    app.run(host='0.0.0.0', port=3000)
+    server = pywsgi.WSGIServer(('0.0.0.0', 3000), app)
+    server.serve_forever()
+    # app.run(host='0.0.0.0', port=3000)
