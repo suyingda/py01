@@ -289,7 +289,6 @@ def overview():
     return json_util.dumps({'data': dict, 'message': 'success', 'code': 200})
 
 
-
 @app.route("/components/list", methods=['GET'])
 def list():
     db = mongo.components
@@ -407,12 +406,20 @@ def insert_page():
         dict['parentId'] = ObjectId(parentId)
     if headBackground:
         dict['headBackground'] = headBackground
+    else:
+        dict['headBackground'] = ''
     if title:
         dict['title'] = title
+    else:
+        dict['title'] = ''
     if desc:
         dict['desc'] = desc
+    else:
+        dict['desc'] = ''
     if overViewIcon:
         dict['overViewIcon'] = overViewIcon
+    else:
+        dict['overViewIcon'] = ''
     if parentId:
         # dict = (ast.literal_eval(JSONEncoder().encode(r)))
         db.page_head.update_one({'parentId': ObjectId(parentId)}, {"$set": dict}, upsert=True)
