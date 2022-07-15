@@ -16,6 +16,8 @@ import common.routers as routers
 # print(common.path('env'), 'xxx')
 
 app = Flask(__name__, static_folder='save_file', static_url_path="/save_file")
+
+app.config['MAX_CONTENT_LENGTH'] = 150 * 1024
 # download
 # app.default_config['JSONIFY_MINETYPE'] = "application/DragonFire"
 # routers.routers(app)
@@ -81,7 +83,7 @@ def upload():
     # _p = os.path.abspath('/save_file/')
     # print(_p)
 
-    file_path = common.path('production')
+    file_path = common.path()
     path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     print(list, '7777')
@@ -521,7 +523,7 @@ def delete_file(file_path, name):
 
 
 def unnecessary():
-    file_path = common.path('production')
+    file_path = common.path()
     # path = file_path + _format[0] + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     # print(list, '7777')
