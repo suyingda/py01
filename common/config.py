@@ -1,7 +1,5 @@
-def path():
-    return '/Users/apple/Desktop/py-server/py01/save_file/'
-    # return '/py01/save_file/'
-    # if 'production' == env:
-    #     return '/py01/save_file/'
-    # else:
-    #     return '/Users/apple/Desktop/py-server/py01/save_file/'
+
+# 文件全局上传大小
+MAX_CONTENT_LENGTH = 150 * 1024
+# 中文解码
+JSON_AS_ASCII = False
