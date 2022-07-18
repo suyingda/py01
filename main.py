@@ -74,20 +74,19 @@ def unnecessary():
         dict = dict + str(r)
     for r in data_head:
         dict = dict + str(r)
-    print(dict, 'data')
+    # print(dict, 'data')
 
     for r in list:
-        if (r in dict):
-            print("在")
-        else:
+        if r not in dict:
             delete_file(file_path, r)
             print("不在")
-    # for r in :
-    #     print(str(r))
+        # else:
 
 
 if __name__ == "__main__":
     unnecessary()
+    print('successful')
     server = pywsgi.WSGIServer(('0.0.0.0', 3000), app)
     server.serve_forever()
+
     # app.run(host='0.0.0.0', port=3000)
