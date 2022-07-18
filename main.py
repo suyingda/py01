@@ -84,7 +84,7 @@ def unnecessary():
 
 
 if __name__ == "__main__":
-    unnecessary()
+    # unnecessary()
     print('successful')
     server = pywsgi.WSGIServer(('0.0.0.0', 3000), app)
     server.serve_forever()

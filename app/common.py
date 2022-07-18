@@ -33,21 +33,15 @@ def upload():
     t = str(round(time.time() * 1000))
     # _p = os.path.abspath('/save_file/')
     # print(_p)
-
+    _name = _format[0].replace(" ", "")
     file_path = FILE_PATH
-    path = file_path + _format[0] + t + '.' + _format[1]
+    path = file_path + _name + t + '.' + _format[1]
     list = os.listdir(file_path)  # 列出文件夹下所有的目录与文件
     print(list, '7777')
     db = mongo.components
     exit_data = db.upload.find_one({"filename": _format[0]})
     print(exit_data)
-
-    _path = '/save_file/' + _format[0] + t + '.' + _format[1]
-    # if exit_data:
-    #     return json_util.dumps(
-    #         {'data': exit_data['path'], 'message': 'already existed', 'code': 200})
-    # else:
-    #     db.upload.insert_one({"filename": _format[0], "path": _path})
+    _path = '/save_file/' + _name + t + '.' + _format[1]
     print(_format[0], 'xxxx')
     if fileData:
         fileData.save(path)
