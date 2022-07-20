@@ -7,5 +7,5 @@
 #     #     return '/Users/apple/Desktop/py-server/py01/save_file/'
 
 
-# FILE_PATH = '/Users/apple/Desktop/py-server/py01/save_file/'
-FILE_PATH = '/python-server/save_file/'
+FILE_PATH = '/Users/apple/Desktop/py-server/py01/save_file/'
+# FILE_PATH = '/python-server/save_file/'

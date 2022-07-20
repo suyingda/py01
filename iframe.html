@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        @media screen and (min-width: 768px) {
+            iframe {
+            {#margin-left: -260px;#}
+            }
+        }
+    </style>
+</head>
+<body id="iframe-box">
+
+    <iframe name="aaaa" width="100%" src="http://intl-design-ui.woa.com" id="if2rame-box"></iframe>
+
+
+<script>
+ setTimeout(()=>{
+     const aaa = document.querySelector('#if2rame-box')
+   //  aaa.click()
+         console.log(aaa.ownerDocument.documentElement)
+         console.dir(aaa.ownerDocument.documentElement)
+         console.log(aaa.ownerDocument.documentElement.childNodes[2])
+         //console.log(aaa.ownerDocument.documentElement.childNodes[2].childNodes[1])
+         //console.dir(aaa.ownerDocument.documentElement.childNodes[2].childNodes[1].ownerDocument)
+         //console.log(aaa.ownerDocument.documentElement.childNodes[2].childNodes[1].ownerDocument.childNodes[1])
+ },2000)
+
+    function aa() {
+        var a = document.querySelector('.__dumi-default-menu');
+        console.log(a)
+        a.style.display = 'none'
+    }
+
+    (function () {
+
+        window.__cr_eval = window.eval
+        console.log(window.__cr_eval)
+        var myeval = function (src) {
+            console.log("================ eval begin: length=" + src.length + ",caller=" + (myeval.caller && myeval.caller.name) + " ===============")
+            console.log(src);
+            console.log("================ eval end ================")
+            return window.__cr_eval(src)
+        }
+        var _myeval = myeval.bind(null)
+        _myeval.toString = window.__cr_eval.toString
+        Object.defineProperty(window, 'eval', {value: _myeval})
+       console.log(">>>>>>>>>>>>>> eval injected: " + document.location + " <<<<<<<<<<<<<<<<<<<")
+    })();
+window.frames["aaaa"].document.getElementById("root");
+
+</script>
+</body>
+</html>

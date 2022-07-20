@@ -1,7 +1,13 @@
 import os
+
+import os
+import importlib
+import inspect
+from stat import *
+
 from common.path import FILE_PATH
 import gridfs
-from flask import Flask, send_file, jsonify
+from flask import Flask, send_file, render_template
 from flask_cors import CORS
 from common.mongo import mongo
 from gevent import pywsgi
@@ -35,14 +41,36 @@ def save_file_to_mongo(content):
         # retrun fs.put(data)
 
 
-# @app.route("/download")
-# def find():
+# _path = os.listdir("/Users/apple/Desktop/py-server/py01/templates/")
+#
+# print(_path, '_path')
+# for r in _path:
+#     c_path = r.replace(".html", "")
+#     print(c_path, 'c_path')
+#     app.add_url_rule("/<string:name>", endpoint=r.replace(".html", ""), view_func=templates_routers(c_path))
 
 
-@app.route("/get_file")
-def get_file():
-    app.config["JSONIFY_MINETYPE"] = "application/DragonFire"
-    return send_file("save_file/1.jpeg")
+def templates_routers(name):
+    if not name:
+        return render_template('common-container' + '.html')
+    print(name, '???')
+    return render_template('common-container' + '.html')
+
+
+@app.route("/<string:name>")
+def single_template(name):
+    if not name:
+        return render_template('common-container' + '.html')
+    print(name, '???')
+    return render_template(name + '.html')
+
+
+@app.route("/<string:name>/<string:age>")
+def multiple_template(name, age):
+    if not name:
+        return render_template('common-container' + '.html')
+    print(name, '???', age)
+    return render_template(name + '.html')
 
 
 @app.route('/components/page/<string:name>', methods=['GET'])
@@ -84,7 +112,7 @@ def unnecessary():
 
 
 if __name__ == "__main__":
-    # unnecessary()
+    unnecessary()
     print('successful')
     server = pywsgi.WSGIServer(('0.0.0.0', 3000), app)
     server.serve_forever()
