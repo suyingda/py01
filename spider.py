@@ -1,11 +1,18 @@
-import time
-from urllib import request
+# import time
+# from urllib import request
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from common.mongo import mongo
 
+from bson.objectid import ObjectId
+
 url = 'http://intl-design-ui.woa.com/'
-driver = webdriver.Chrome()
+option = webdriver.ChromeOptions()
+option.add_argument("headless")
+driver = webdriver.Chrome(chrome_options=option)
+
+
+# driver = webdriver.Chrome()
 
 
 def get_html_text(_url):
@@ -27,12 +34,35 @@ for e in elements:
         print('我是啥', r.text, r.tag_name, r.get_attribute('href'))
         get_href = r.get_attribute('href')
         get_href = get_href.replace('http://intl-design-ui.woa.com/', '')
+        temp_line = get_href
         get_href = get_href.replace('/', '__')
+        split_str = get_href.split('__')
+        # resolve_path = get_href.replace('__', '/')
+        # for c_r in child_href:
         # print(get_href,'get_hrefget_hrefget_href')
-        child_href.append({
+        collect_dict = {
             'name': get_href,
-            'href': r.get_attribute('href')
-        })
+            'href': r.get_attribute('href'),
+            'page': f'/{temp_line}.html',
+        }
+        if split_str and len(split_str) > 1:
+            print('split_str', split_str)
+            collect_dict['parent'] = split_str[0]
+        child_href.append(collect_dict)
+
+# child_href
+
+for index in range(len(child_href)):
+    # for r, index in enumerate(child_href):
+    # print(index, 'xx')
+    r = child_href[index]
+    if 'parent' in r:
+        for rr in child_href:
+            if rr['name'] == r['parent']:
+                if 'children' not in rr:
+                    rr['children'] = []
+                rr['children'].append(r)
+                # del child_href[index]
 
 
 #
@@ -79,24 +109,39 @@ def generate(_res, name):
 # rs = request.Request(url=path)
 # _t = request.urlopen(rs)
 # print(_t.read().decode('utf-8'))
+filter_data = []
 for r in child_href:
     new_res = get_html_text(r['href'])
-    print(r, 'namename')
-    print(r['name'], 'namename')
+    # print(r, 'namename')
+    # print(r['name'], 'namename')
     # 判断是否是存在name
     if r['name']:
+        if 'parent' not in r:
+            filter_data.append(r)
         generate(new_res, r['name'] + '.html')
 
 
 def connect_mongodb():
     db = mongo.intl_components
-    r = db.data.find()
-    for i in r:
-        print(i)
-    db.data.insert_one({"data": child_href})
+    rrr = db.data.find()
+    # print('数据库', rrr)
+    templates_dict = {}
+    for i in rrr:
+        templates_dict = i
+    # print('templates_dict', templates_dict)
+    if "_id" in templates_dict:
+        # print('666666', templates_dict['_id'])
+        db.data.update_one({'_id': ObjectId(templates_dict['_id'])}, {"$set": {"data": filter_data}})
+        # db.data.update_one({"_id": ObjectId(templates_dict['_id'])}, {"$set": filter_data})
+        print('存在')
+    else:
+        db.data.insert_one({"data": filter_data})
+        print('不存在')
+
+    #
 
 
-time.sleep(10)
+# time.sleep(10)
 driver.quit()
 
 connect_mongodb()

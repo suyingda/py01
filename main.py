@@ -16,12 +16,14 @@ import common.config as _config
 
 from app.components import app as components_bp
 from app.common import app as common_bp
+from app.intl_components import app as intl_components
 
 app = Flask(__name__, static_folder='save_file', static_url_path="/save_file")
 app.config.from_object(_config)
 # 导入蓝图结构
 app.register_blueprint(common_bp)
 app.register_blueprint(components_bp)
+app.register_blueprint(intl_components)
 # download
 # app.default_config['JSONIFY_MINETYPE'] = "application/DragonFire"
 # routers.routers(app)
