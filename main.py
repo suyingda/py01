@@ -62,10 +62,6 @@ def get_file(name):
 def single_template(name):
     if not name:
         return render_template('common-container' + '.html')
-    print(name, '一个参数', render_template(name + '.html'))
-    with open('/Users/apple/Desktop/py-server/py01/templates/test.html', 'w', encoding='utf-8') as fp:
-        fp.write(render_template(name + '.html'))
-
     return render_template(name + '.html')
 
 
