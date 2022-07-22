@@ -1,0 +1,12 @@
+.__dumi-default-navbar, .__dumi-default-menu {
+    display: none;
+}
+
+.__dumi-default-layout {
+    padding-left: 120px;
+}
+
+
+.__dumi-default-layout {
+    padding-top: 0 !important;
+}

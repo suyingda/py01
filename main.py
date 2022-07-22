@@ -52,18 +52,20 @@ def save_file_to_mongo(content):
 #     app.add_url_rule("/<string:name>", endpoint=r.replace(".html", ""), view_func=templates_routers(c_path))
 
 
-def templates_routers(name):
-    if not name:
-        return render_template('common-container' + '.html')
-    print(name, '???')
-    return render_template('common-container' + '.html')
+@app.route("/get_file/<string:name>")
+def get_file(name):
+    app.config["JSONIFY_MINETYPE"] = "application/DragonFire"
+    return send_file(f"templates/static/{name}.{name}")
 
 
 @app.route("/<string:name>")
 def single_template(name):
     if not name:
         return render_template('common-container' + '.html')
-    print(name, '???')
+    print(name, '一个参数', render_template(name + '.html'))
+    with open('/Users/apple/Desktop/py-server/py01/templates/test.html', 'w', encoding='utf-8') as fp:
+        fp.write(render_template(name + '.html'))
+
     return render_template(name + '.html')
 
 

@@ -41,6 +41,7 @@ for e in elements:
         # for c_r in child_href:
         # print(get_href,'get_hrefget_hrefget_href')
         collect_dict = {
+            'label': r.text,
             'name': get_href,
             'href': r.get_attribute('href'),
             'page': f'/{temp_line}.html',
@@ -64,7 +65,6 @@ for index in range(len(child_href)):
                 rr['children'].append(r)
                 # del child_href[index]
 
-
 #
 # for e in child:
 #     print('我是啥', e.text)
@@ -85,13 +85,22 @@ for index in range(len(child_href)):
 # print(res.geturl())
 # print(res.getcode())
 #
+css_path = 'css'
+js_path = 'js'
+
+
 def generate(_res, name):
     link_reg = '<link rel="stylesheet" href="/umi.css">'
     script_reg = '<script src="/umi.js"></script>'
     pre_http = 'http://intl-design-ui.woa.com/'
-    link_res = _res.replace(link_reg, '<link rel="stylesheet" href="' + pre_http + 'umi.css">')
+    _dome = '/~demos/'
+    # _res = _res.replace(_dome, 'http://intl-design-ui.woa.com/~demos/')
+    link_res = _res.replace(link_reg, '<link rel="stylesheet" href="' + pre_http + 'umi.css">'
+                                                                                   '<link rel="stylesheet" href="/get_file/' + css_path + '">')
     # script_res = link_res.replace(script_reg, '<script src="' + pre_http + 'umi.js"></script>')
-    script_res = link_res.replace(script_reg, '<script src="' + pre_http + 'umi.js"></script>')
+    script_res = link_res.replace(script_reg,
+                                  '<script src="' + pre_http + 'umi.js"></script><script src="/get_file/' + js_path + '"></script>')
+
     # print(_res, '有东西？')
     if not name:
         name = 'default.html'
